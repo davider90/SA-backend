@@ -1,0 +1,22 @@
+{
+  "name": "sa-backend",
+  "version": "1.0.0",
+  "description": "backend of Party Snake",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/davider90/SA-backend.git"
+  },
+  "author": "David Ferenc Bendiksen",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/davider90/SA-backend/issues"
+  },
+  "homepage": "https://github.com/davider90/SA-backend#readme",
+  "dependencies": {
+    "mongodb": "^3.6.6"
+  }
+}
