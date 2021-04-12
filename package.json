@@ -1,5 +1,6 @@
 {
   "name": "sa-backend",
+  "type": "module",
   "version": "1.0.0",
   "description": "backend of Party Snake",
   "main": "app.js",
@@ -17,6 +18,7 @@
   },
   "homepage": "https://github.com/davider90/SA-backend#readme",
   "dependencies": {
-    "mongodb": "^3.6.6"
+    "mongodb": "^3.6.6",
+    "socket.io": "^4.0.1"
   }
 }
