@@ -1,6 +1,19 @@
-// The database functionality of the backend.
-// Note how this in effect is an implementation of
-// the singleton pattern.
+/*
+This file contains the database functionality of the backend.
+
+Note how this in effect is an implementation of the singleton
+pattern and the state pattern.
+
+Explanation:
+By "pretending" that db.js defines a class like it for instance
+would in Java, and by only exporting the "methods" we would like
+to be public, we end up with something that can be imported and
+used like a traditional class.
+Notice how the "class constructor", called instantiate here,
+will check to see if it has already been instantiated. Also see
+how all "public methods" except instatiate will not do anything
+unless isInstatiated is true.
+*/
 
 import mongodb from "mongodb";
 const MongoClient = mongodb.MongoClient;
@@ -11,6 +24,7 @@ let isInstantiated = false;
 let mdb;  // Mongo database (general)
 let psdb;  // Party Snake database
 
+// "Methods"
 /**
  * Creates database connection when instantiated.
  * This may take some time, so use a callback if needed.
@@ -36,6 +50,7 @@ const instantiate = (callback = () => {}) => {
  * Run immediately if the database has not been set up before.
  */
 const setUp = () => {
+  if (!isInstantiated) return;
   psdb.createCollection("players", (err, res) => {
     if (err) throw err;
     console.log("Set up database successfully!");
@@ -48,6 +63,7 @@ const setUp = () => {
  * before constructing a new "instance".
  */
 const dispose = () => {
+  if (!isInstantiated) return;
   mdb.close();
   isInstantiated = false;
   console.log("Disconnected from database.");
@@ -58,6 +74,7 @@ const dispose = () => {
  * @param {Function} callback callback to handle the result
  */
 const getTopTen = (callback) => {
+  if (!isInstantiated) return;
   const sort = { score: -1 };
   psdb.collection("players").find()
                              .sort(sort)
@@ -74,6 +91,7 @@ const getTopTen = (callback) => {
  * @param {Function} callback callback to handle the result
  */
 const getPlayer = (name, callback) => {
+  if (!isInstantiated) return;
   const query = { player: name };
   psdb.collection("players").findOne(query, (err, result) => {
     if (err) throw err;
@@ -89,6 +107,7 @@ const getPlayer = (name, callback) => {
  * @param {Function} callback optional callback
  */
 const updatePlayer = (name, score, callback = () => {}) => {
+  if (!isInstantiated) return;
   getPlayer(name, (result) => {
     if (result == null) {
       createNewPlayer(name, score, callback);
@@ -131,7 +150,7 @@ const createNewPlayer = (name, score, callback) => {
   });
 }
 
-// Exports "public methods"
+// Exporting of "public methods"
 export default {
   instantiate,
   setUp,
