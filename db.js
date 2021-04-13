@@ -8,21 +8,24 @@ const MongoClient = mongodb.MongoClient;
 // "Private" fields
 const url = "mongodb://localhost:27017/mydb";
 let isInstantiated = false;
-let dataBase;
-let subDB;
+let mdb;  // Mongo database (general)
+let psdb;  // Party Snake database
 
 /**
- * Creates database connection when instantiated
+ * Creates database connection when instantiated.
+ * This may take some time, so use a callback if needed.
+ * @param {Function} callback optional callback
  */
-const instantiate = () => {
+const instantiate = (callback = () => {}) => {
   if (!isInstantiated) {
     MongoClient.connect(url, { useUnifiedTopology: true }, (err, db) => {
       if (err) throw err;
       console.log("Connected to database successfully!");
-      dataBase = db;
-      subDB = db.db("PartySnakeDB");
+      mdb = db;
+      psdb = db.db("PartySnakeDB");
+      isInstantiated = true;
+      callback();
     });
-    isInstantiated = true;
     return;
   }
   console.log("Database already instantiated.");
@@ -33,7 +36,7 @@ const instantiate = () => {
  * Run immediately if the database has not been set up before.
  */
 const setUp = () => {
-  subDB.createCollection("players", (err, res) => {
+  psdb.createCollection("players", (err, res) => {
     if (err) throw err;
     console.log("Set up database successfully!");
   })
@@ -45,77 +48,86 @@ const setUp = () => {
  * before constructing a new "instance".
  */
 const dispose = () => {
-  dataBase.close();
+  mdb.close();
   isInstantiated = false;
   console.log("Disconnected from database.");
 }
 
 /**
  * Gets the top ten high scores
- * @returns {Array} the results
+ * @param {Function} callback callback to handle the result
  */
-const getTopTen = () => {
+const getTopTen = (callback) => {
   const sort = { score: -1 };
-  subDB.collection("players").find()
+  psdb.collection("players").find()
                              .sort(sort)
                              .limit(10)
                              .toArray((err, result) => {
     if (err) throw err;
-    return result;
+    callback(result);
   });
 }
 
 /**
  * Gets any information in the database about the player
  * @param {string} name the name of the player
- * @returns {Object} the results if any
+ * @param {Function} callback callback to handle the result
  */
-const getPlayer = (name) => {
+const getPlayer = (name, callback) => {
   const query = { player: name };
-  subDB.collection("players").findOne(query, (err, result) => {
+  psdb.collection("players").findOne(query, (err, result) => {
     if (err) throw err;
-    return result;
+    callback(result);
   });
 }
 
 /**
- * Updates the player's score, or creates an entry if none exists
+ * Updates the player's score, or creates an entry if none exists.
+ * This may take some time, so use a callback if needed.
  * @param {string} name the name of the player
- * @param {int} score the player's score
+ * @param {number} score the player's score
+ * @param {Function} callback optional callback
  */
-const updatePlayer = (name, score) => {
-  const player = getPlayer(name);
-  if (player == {}) {
-    createNewPlayer(name, score);
-    return;
-  }
-  actuallyUpdatePlayer(name, score);
+const updatePlayer = (name, score, callback = () => {}) => {
+  getPlayer(name, (result) => {
+    if (result == null) {
+      createNewPlayer(name, score, callback);
+      return;
+    }
+    actuallyUpdatePlayer(name, score, callback);
+  });
 }
 
 /**
  * "Private method".
  * Logic of updating a player.
- * @returns 
+ * @param {string} name the name of the player
+ * @param {number} score the player's score
+ * @param {Function} callback callback (may be empty function)
  */
-const actuallyUpdatePlayer = (name, score) => {
+const actuallyUpdatePlayer = (name, score, callback) => {
   const query = { player: name };
   const newValues = { $set: { score: score } };
-  subDB.collection("players").updateOne(query, newValues, (err, res) => {
+  psdb.collection("players").updateOne(query, newValues, (err, res) => {
     if (err) throw err;
     console.log(`Player ${name} successfully updated!`)
+    callback();
   })
 }
 
 /**
  * "Private method".
  * Logic of creating a new player entry.
- * @returns 
+ * @param {string} name the name of the player
+ * @param {number} score the player's score
+ * @param {Function} callback callback (may be empty function)
  */
-const createNewPlayer = (name, score) => {
+const createNewPlayer = (name, score, callback) => {
   const newPlayer = { player: name, score: score };
-  subDB.collection("players").insertOne(newPlayer, (err, res) => {
+  psdb.collection("players").insertOne(newPlayer, (err, res) => {
     if (err) throw err;
     console.log(`Player ${name} successfully added!`)
+    callback();
   });
 }
 
