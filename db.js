@@ -19,7 +19,7 @@ import mongodb from "mongodb";
 const MongoClient = mongodb.MongoClient;
 
 // "Private" fields
-const url = "mongodb://localhost:27017/mydb";
+const url = 'mongodb://localhost:27017/mydb';
 let isInstantiated = false;
 let mdb;  // Mongo database (general)
 let psdb;  // Party Snake database
@@ -34,15 +34,15 @@ const instantiate = (callback = () => {}) => {
   if (!isInstantiated) {
     MongoClient.connect(url, { useUnifiedTopology: true }, (err, db) => {
       if (err) throw err;
-      console.log("Connected to database successfully!");
+      console.log('Connected to database successfully!');
       mdb = db;
-      psdb = db.db("PartySnakeDB");
+      psdb = db.db('PartySnakeDB');
       isInstantiated = true;
       callback();
     });
     return;
   }
-  console.log("Database already instantiated.");
+  console.log('Database already instantiated.');
 }
 
 /**
@@ -51,9 +51,9 @@ const instantiate = (callback = () => {}) => {
  */
 const setUp = () => {
   if (!isInstantiated) return;
-  psdb.createCollection("players", (err, res) => {
+  psdb.createCollection('players', (err, res) => {
     if (err) throw err;
-    console.log("Set up database successfully!");
+    console.log('Set up database successfully!');
   })
 }
 
@@ -66,7 +66,7 @@ const dispose = () => {
   if (!isInstantiated) return;
   mdb.close();
   isInstantiated = false;
-  console.log("Disconnected from database.");
+  console.log('Disconnected from database.');
 }
 
 /**
@@ -76,7 +76,7 @@ const dispose = () => {
 const getTopTen = (callback) => {
   if (!isInstantiated) return;
   const sort = { score: -1 };
-  psdb.collection("players").find()
+  psdb.collection('players').find()
                              .sort(sort)
                              .limit(10)
                              .toArray((err, result) => {
@@ -93,7 +93,7 @@ const getTopTen = (callback) => {
 const getPlayer = (name, callback) => {
   if (!isInstantiated) return;
   const query = { player: name };
-  psdb.collection("players").findOne(query, (err, result) => {
+  psdb.collection('players').findOne(query, (err, result) => {
     if (err) throw err;
     callback(result);
   });
@@ -127,7 +127,7 @@ const updatePlayer = (name, score, callback = () => {}) => {
 const actuallyUpdatePlayer = (name, score, callback) => {
   const query = { player: name };
   const newValues = { $set: { score: score } };
-  psdb.collection("players").updateOne(query, newValues, (err, res) => {
+  psdb.collection('players').updateOne(query, newValues, (err, res) => {
     if (err) throw err;
     console.log(`Player ${name} successfully updated!`)
     callback();
@@ -143,7 +143,7 @@ const actuallyUpdatePlayer = (name, score, callback) => {
  */
 const createNewPlayer = (name, score, callback) => {
   const newPlayer = { player: name, score: score };
-  psdb.collection("players").insertOne(newPlayer, (err, res) => {
+  psdb.collection('players').insertOne(newPlayer, (err, res) => {
     if (err) throw err;
     console.log(`Player ${name} successfully added!`)
     callback();
