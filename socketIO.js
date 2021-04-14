@@ -1,31 +1,46 @@
 import { createServer } from "http";
 import { Server } from "socket.io";
-import { readFile } from "fs";  // For testing
 
-const hn;
-const p;
-const io;
-const httpServer;
+let hn;  // Hostname
+let p;  // Port
+let io;
+let httpServer;
+let clients = [];
+const explicitDCs = [
+  'server namespace disconnect',
+  'client namespace disconnect',
+  'server shutting down'
+];
 
 const startServer = (hostname = '127.0.0.1', port = 3000) => {
   hn = hostname;
   p = port;
-  
-  server = createServer((req, res) => {
-    readFile('connTest.html', (err, data) => {
-      res.writeHead(200, { 'Content-Type': 'text/html' });
-      res.write(data);
-      return res.end();
-    })
-  });
-  
+  httpServer = createServer();
   io = new Server(httpServer);
-  
-  io.on('connection', (socket) => console.log('new connection'));
-  
+
+  io.on('connection', (socket) => {
+    if (clients.indexOf(socket) > -1) {
+      console.log(`Client "${socket.id}" reconnected`);
+      return;
+    }
+    console.log(`New connection: ${socket.id}`);
+    clients.push(socket);
+    socket.on('rubbish', () => console.log('ribbush'));
+    socket.on('disconnect', (reason) => clientDC(socket, reason));
+  });
+
   httpServer.listen(port, hostname, () => {
     console.log(`Server running at http://${hostname}:${port}/`);
   });
 }
+
+const clientDC = (client, reason) => {
+  if (explicitDCs.indexOf(reason) == -1) return;
+  const index = clients.indexOf(client);
+  clients.splice(index, 1);
+  console.log(`Client "${client.id}" disconnected: ${reason}`);
+}
+
+startServer();
 
 export default {}
