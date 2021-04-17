@@ -1,34 +1,95 @@
-import { createServer } from "http";
 import { Server } from "socket.io";
+import db from "./db.js";
 
-let hn;  // Hostname
-let p;  // Port
 let io;
-let httpServer;
-let clients = [];
+let isInstantiated = false;
+let gameSessions = [];
+/*
+IMAGINED FORMAT
+session {
+  room: room,
+  player1: name,
+  player2: name
+}
+*/
 
-const startServer = (hostname = '127.0.0.1', port = 3000) => {
-  hn = hostname;
-  p = port;
-  httpServer = createServer();
-  io = new Server(httpServer);
+/**
+ * Starts the Socket.io server and makes it listen at
+ * http://[hostname]:[port]/
+ * @param {string} hostname defaults to "localhost"
+ * @param {number} port defaults to 3000
+ */
+const instantiate = (hostname = '127.0.0.1', port = 3000) => {
+  if (!isInstantiated) {
+    io = new Server(port, {
+      cors: {
+        origin: `http://${hostname}:${port}/`,
+        methods: ['GET', 'POST']
+      }
+    });
+    io.use((socket, next) => {
+      next();
+    });
+    io.on('connection', socketSetup);
+    return;
+  }
+  console.log('Server already running')
+}
 
-  io.on('connection', (socket) => {
-    console.log(`New connection: ${socket.id}`);
-    clients.push(socket);
-    socket.on('rubbish', () => console.log('ribbush'));
-    socket.on('disconnect', (reason) => clientDC(socket, reason));
+/**
+ * Does the necessary setup for a new connection
+ * @param {Socket} socket the new socket object
+ */
+const socketSetup = (socket) => {
+  console.log(`New connection: ${socket.id}`);
+  socket.on('disconnected', (reason) => {
+    console.log(`Client "${socket.id}" disconnected: ${reason}`);
   });
+  socket.join('mainRoom');
+  socket.on('getTopTen', db.getTopTen);
+  socket.on('getPlayer', db.getPlayer);
+  socket.on('updatePlayer', db.updatePlayer);
+  socket.on('newGame', (callback) => {
+    newGame(socket.name, callback);
+  });
+  // POSSIBLE RECONNECTION HANDLING
+  // const inGame = gameSessions.find((element, index) => {
+  //   return element.player1 == '' || element.player2 == '';
+  // })
+  // inGame && socket.join(inGame.room);
+}
 
-  httpServer.listen(port, hostname, () => {
-    console.log(`Server running at http://${hostname}:${port}/`);
+const newGame = (name, callback) => {
+  const clients = await io.fetchSockets();
+  if (clients.length < 2) {
+    callback(null, null);
+    return;
+  }
+  clients.forEach(element => {
+    return;
   });
 }
 
-const clientDC = (client, reason) => {
-  const index = clients.indexOf(client);
-  clients.splice(index, 1);
-  console.log(`Client "${client.id}" disconnected: ${reason}`);
+const requestGame = (from, to, callback) => {
+  to.emit('gameRequest', from, (response) => {
+    if (response) {
+      let i = 0;
+      while (true) {
+        const session = gameSessions.find((element, index) => {
+          return element.room == i
+        })
+        if (!session) break;
+        i++;
+      }
+      gameSessions.push({
+        room: i,
+        player1: from,
+        player2: to
+      })
+      callback(i, to);
+    }
+    else callback(null, null);
+  });
 }
 
 startServer();

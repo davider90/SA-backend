@@ -42,7 +42,7 @@ const instantiate = (callback = () => {}) => {
     });
     return;
   }
-  console.log('Database already instantiated.');
+  console.log('Database already instantiated');
 }
 
 /**
@@ -66,7 +66,7 @@ const dispose = () => {
   if (!isInstantiated) return;
   mdb.close();
   isInstantiated = false;
-  console.log('Disconnected from database.');
+  console.log('Disconnected from database');
 }
 
 /**
