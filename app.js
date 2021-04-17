@@ -12,20 +12,25 @@ Client–Server
 */
 
 import db from "./db.js";
+import server from "./socketIO.js";
 
-// INSERT IMPLEMENTATION HERE
+db.instantiate();
+server.instantiate();
 
 // Testing of db below
-const test = () => {
-  db.instantiate();  // Should fail
-  // db.setUp();  // Only run once!
-  db.updatePlayer("David", 2, () => {
-    db.getPlayer("David", (result) => console.log(result));
-    db.getTopTen((result) => {
-      console.log(result);
-      db.dispose();
-    });
-  });
-}
+// const test = () => {
+//   db.instantiate();  // Should fail
+//   // db.setUp();  // Only run once!
+//   db.newUser("David", "test", () => {
+//     db.getPlayer("David", (result) => console.log(result));
+//     db.getTopTen((result) => {
+//       console.log(result);
+//       db.logIn("David", "test", (result) => {
+//         console.log(result);
+//         db.dispose();
+//       })
+//     });
+//   });
+// }
 
-db.instantiate(test);
+// db.instantiate(test);

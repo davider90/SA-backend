@@ -28,12 +28,21 @@ const instantiate = (hostname = '127.0.0.1', port = 3000) => {
       }
     });
     io.use((socket, next) => {
-      next();
+      const auth = socket.handshake.auth;
+      db.logIn(auth.name, auth.password, (result) => {
+        if (result) {
+          next();
+        } else {
+          const err = new Error("Authentication failed");
+          err.data = "User not found";
+          next(err);
+        }
+      })
     });
     io.on('connection', socketSetup);
     return;
   }
-  console.log('Server already running')
+  console.log('Server already running');
 }
 
 /**
@@ -49,9 +58,10 @@ const socketSetup = (socket) => {
   socket.on('getTopTen', db.getTopTen);
   socket.on('getPlayer', db.getPlayer);
   socket.on('updatePlayer', db.updatePlayer);
-  socket.on('newGame', (callback) => {
-    newGame(socket.name, callback);
+  socket.on('newGame', async (callback) => {
+    newGame(socket, callback);
   });
+  socket.on('gameOver', gameOver);
   // POSSIBLE RECONNECTION HANDLING
   // const inGame = gameSessions.find((element, index) => {
   //   return element.player1 == '' || element.player2 == '';
@@ -59,39 +69,54 @@ const socketSetup = (socket) => {
   // inGame && socket.join(inGame.room);
 }
 
-const newGame = (name, callback) => {
+const gameOver = () => {};
+
+const newGame = async (socket, callback) => {
+  const name = socket.handshake.auth.name;
   const clients = await io.fetchSockets();
-  if (clients.length < 2) {
-    callback(null, null);
-    return;
-  }
-  clients.forEach(element => {
-    return;
-  });
-}
-
-const requestGame = (from, to, callback) => {
-  to.emit('gameRequest', from, (response) => {
-    if (response) {
-      let i = 0;
-      while (true) {
-        const session = gameSessions.find((element, index) => {
-          return element.room == i
-        })
-        if (!session) break;
-        i++;
-      }
-      gameSessions.push({
-        room: i,
-        player1: from,
-        player2: to
-      })
-      callback(i, to);
+  let opponent;
+  for (let index = 0; index < clients.length; index++) {
+    if (clients[index].handshake.auth.name == name) continue;
+    const accepted = await requestGame(name, clients[index]);
+    if (accepted) {
+      opponent = clients[index];
+      break;
     }
-    else callback(null, null);
-  });
+  }
+  if (opponent) {
+    const p2Name = opponent.handshake.auth.name;
+    const i = nextSessionNumber();
+    gameSessions.push({
+      room: i,
+      player1: name,
+      player2: p2Name
+    });
+    socket.join(`room${i}`);
+    opponent.join(`room${i}`);
+    callback(i, p2Name);
+  } else {
+    callback(null, null);
+  }
 }
 
-startServer();
+const requestGame = async (from, to) => {
+  return new Promise((resolve) => {
+    to.emit('gameRequest', from, (response) => {
+      resolve(response != null);
+    });
+  })
+}
 
-export default {}
+const nextSessionNumber = () => {
+  let i = 0;
+  while (true) {
+    const session = gameSessions.find((element, index) => {
+      return element.room == i;
+    })
+    if (!session) break;
+    i++;
+  }
+  return i;
+}
+
+export default instantiate;
