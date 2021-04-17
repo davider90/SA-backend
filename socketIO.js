@@ -40,6 +40,7 @@ const instantiate = (hostname = '127.0.0.1', port = 3000) => {
       })
     });
     io.on('connection', socketSetup);
+    // io.of(REGEX).on('move');
     return;
   }
   console.log('Server already running');
