@@ -77,9 +77,9 @@ const getTopTen = (callback) => {
   if (!isInstantiated) return;
   const sort = { score: -1 };
   psdb.collection('players').find()
-                             .sort(sort)
-                             .limit(10)
-                             .toArray((err, result) => {
+                            .sort(sort)
+                            .limit(10)
+                            .toArray((err, result) => {
     if (err) throw err;
     callback(result);
   });
