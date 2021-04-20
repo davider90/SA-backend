@@ -1,16 +1,30 @@
-// The database functionality of the backend.
-// Note how this in effect is an implementation of
-// the singleton pattern.
+/*
+This file contains the database functionality of the backend.
+
+Note how this in effect is an implementation of the singleton
+pattern and the state pattern.
+
+Explanation:
+By "pretending" that db.js defines a class like it for instance
+would in Java, and by only exporting the "methods" we would like
+to be public, we end up with something that can be imported and
+used like a traditional class.
+Notice how the "class constructor", called instantiate here,
+will check to see if it has already been instantiated. Also see
+how all "public methods" except instatiate will not do anything
+unless isInstatiated is true.
+*/
 
 import mongodb from "mongodb";
 const MongoClient = mongodb.MongoClient;
 
 // "Private" fields
-const url = "mongodb://localhost:27017/mydb";
+const url = 'mongodb://localhost:27017/mydb';
 let isInstantiated = false;
 let mdb;  // Mongo database (general)
 let psdb;  // Party Snake database
 
+// "Public methods"
 /**
  * Creates database connection when instantiated.
  * This may take some time, so use a callback if needed.
@@ -20,26 +34,16 @@ const instantiate = (callback = () => {}) => {
   if (!isInstantiated) {
     MongoClient.connect(url, { useUnifiedTopology: true }, (err, db) => {
       if (err) throw err;
-      console.log("Connected to database successfully!");
+      console.log('Connected to database successfully!');
       mdb = db;
-      psdb = db.db("PartySnakeDB");
+      psdb = db.db('PartySnakeDB');
       isInstantiated = true;
+      setUp();
       callback();
     });
     return;
   }
-  console.log("Database already instantiated.");
-}
-
-/**
- * Simply creates the collection.
- * Run immediately if the database has not been set up before.
- */
-const setUp = () => {
-  psdb.createCollection("players", (err, res) => {
-    if (err) throw err;
-    console.log("Set up database successfully!");
-  })
+  console.log('Database already instantiated');
 }
 
 /**
@@ -48,9 +52,10 @@ const setUp = () => {
  * before constructing a new "instance".
  */
 const dispose = () => {
+  if (!isInstantiated) return;
   mdb.close();
   isInstantiated = false;
-  console.log("Disconnected from database.");
+  console.log('Disconnected from database');
 }
 
 /**
@@ -58,11 +63,13 @@ const dispose = () => {
  * @param {Function} callback callback to handle the result
  */
 const getTopTen = (callback) => {
+  if (!isInstantiated) return;
   const sort = { score: -1 };
-  psdb.collection("players").find()
-                             .sort(sort)
-                             .limit(10)
-                             .toArray((err, result) => {
+  const filter = { player: 1, score: 1 };
+  psdb.collection('players').find({}, filter)
+                            .sort(sort)
+                            .limit(10)
+                            .toArray((err, result) => {
     if (err) throw err;
     callback(result);
   });
@@ -74,41 +81,27 @@ const getTopTen = (callback) => {
  * @param {Function} callback callback to handle the result
  */
 const getPlayer = (name, callback) => {
+  if (!isInstantiated) return;
   const query = { player: name };
-  psdb.collection("players").findOne(query, (err, result) => {
+  const filter = { player: 1, score: 1 };
+  psdb.collection('players').findOne(query, filter, (err, result) => {
     if (err) throw err;
     callback(result);
   });
 }
 
 /**
- * Updates the player's score, or creates an entry if none exists.
- * This may take some time, so use a callback if needed.
+ * Updates the player's score. This may take some time,
+ * so use a callback if needed.
  * @param {string} name the name of the player
  * @param {number} score the player's score
  * @param {Function} callback optional callback
  */
 const updatePlayer = (name, score, callback = () => {}) => {
-  getPlayer(name, (result) => {
-    if (result == null) {
-      createNewPlayer(name, score, callback);
-      return;
-    }
-    actuallyUpdatePlayer(name, score, callback);
-  });
-}
-
-/**
- * "Private method".
- * Logic of updating a player.
- * @param {string} name the name of the player
- * @param {number} score the player's score
- * @param {Function} callback callback (may be empty function)
- */
-const actuallyUpdatePlayer = (name, score, callback) => {
+  if (!isInstantiated) return;
   const query = { player: name };
   const newValues = { $set: { score: score } };
-  psdb.collection("players").updateOne(query, newValues, (err, res) => {
+  psdb.collection('players').updateOne(query, newValues, (err, res) => {
     if (err) throw err;
     console.log(`Player ${name} successfully updated!`)
     callback();
@@ -116,27 +109,71 @@ const actuallyUpdatePlayer = (name, score, callback) => {
 }
 
 /**
- * "Private method".
- * Logic of creating a new player entry.
- * @param {string} name the name of the player
- * @param {number} score the player's score
- * @param {Function} callback callback (may be empty function)
+ * Passes true to callback iff name and password is registered
+ * @param {string} name player / user name
+ * @param {string} password personal password
+ * @param {Function} callback callback to handle boolean result
  */
-const createNewPlayer = (name, score, callback) => {
-  const newPlayer = { player: name, score: score };
-  psdb.collection("players").insertOne(newPlayer, (err, res) => {
+const logIn = (name, password, callback) => {
+  if (!isInstantiated) return;
+  const query = { player: name, password: password };
+  psdb.collection('players').findOne(query, (err, result) => {
     if (err) throw err;
-    console.log(`Player ${name} successfully added!`)
-    callback();
+    callback(result != null);
+  })
+}
+
+/**
+ * Creates a new user in the database
+ * @param {*} name player / user name
+ * @param {*} password new personal password
+ * @param {*} callback optional callback
+ */
+const newUser = (name, password, callback) => {
+  if (!isInstantiated) return;
+  getPlayer(name, (result) => {
+    if (result) callback(false);
+    const newPlayer = {
+      player: name,
+      score: 0,
+      password: password
+    };
+    psdb.collection('players').insertOne(newPlayer, (err, res) => {
+      if (err) throw err;
+      console.log(`Player ${name} successfully added!`);
+      callback(true);
+    });
+  })
+}
+
+// "Private method"
+/**
+ * Checks if the database collection has been set up yet,
+ * and sets it up if it hasn't
+ */
+ const setUp = () => {
+  if (!isInstantiated) return;
+  psdb.listCollections({name: 'players'}).next((err, result) => {
+    if (err) throw err;
+    if (result) {
+      console.log('Database already set up');
+      return;
+    }
+    psdb.createCollection('players', (err, res) => {
+      if (err) throw err;
+      psdb.collection('players').createIndex({ player: 1 }, { unique: true });
+      console.log('Set up database successfully!');
+    });
   });
 }
 
-// Exports "public methods"
+// Exporting of "public methods"
 export default {
   instantiate,
-  setUp,
   dispose,
   getTopTen,
   getPlayer,
-  updatePlayer
+  updatePlayer,
+  logIn,
+  newUser
 }

@@ -20,5 +20,13 @@
   "dependencies": {
     "mongodb": "^3.6.6",
     "socket.io": "^4.0.1"
+  },
+  "optionalDependencies": {
+    "bufferutil": "^4.0.3",
+    "utf-8-validate": "^5.0.4"
+  },
+  "devDependencies": {
+    "eslint": "^7.24.0",
+    "socket.io-client": "^4.0.1"
   }
 }

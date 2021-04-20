@@ -1,34 +1,36 @@
-import Db from "./db.js";
-import http from "http";
+/*
+This file contains the backend's entry point.
 
-// BELOW IS COPY-PASTE (work in progress)
+The backend makes use of JavaScript modules to split up
+functionality across multiple JS files. There are some applied
+"tricks" here that are related to the software architecture.
 
-// const hostname = '127.0.0.1';
-// const port = 3000;
+TO WRITE ABOUT:
+Introduce concurrency 
+Backend as a Service
+Client–Server
+*/
 
-// const server = http.createServer((req, res) => {
-//   res.statusCode = 200;
-//   res.setHeader('Content-Type', 'text/plain');
-//   res.end('Hello World');
-// });
+import db from "./db.js";
+import server from "./socketIO.js";
 
-// server.listen(port, hostname, () => {
-//   console.log(`Server running at http://${hostname}:${port}/`);
-// });
+db.instantiate();
+server.instantiate();
 
-// ABOVE IS COPY-PASTE
+// Testing of db below
+// const test = () => {
+//   db.instantiate();  // Should fail
+//   // db.setUp();  // Only run once!
+//   db.newUser("David", "test", () => {
+//     db.getPlayer("David", (result) => console.log(result));
+//     db.getTopTen((result) => {
+//       console.log(result);
+//       db.logIn("David", "test", (result) => {
+//         console.log(result);
+//         db.dispose();
+//       })
+//     });
+//   });
+// }
 
-// Testing of db
-const test = () => {
-  Db.instantiate();  // Should fail
-  // DB.setUp();  // Only run once!
-  Db.updatePlayer("David", 2, () => {
-    Db.getPlayer("David", (result) => console.log(result));
-    Db.getTopTen((result) => {
-      console.log(result);
-      Db.dispose();
-    });
-  });
-}
-
-Db.instantiate(test);
+// db.instantiate(test);
