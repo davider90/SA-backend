@@ -24,18 +24,7 @@ const instantiate = (hostname = '127.0.0.1', port = 3000) => {
         methods: ['GET', 'POST']
       }
     });
-    io.use((socket, next) => {
-      const auth = socket.handshake.auth;
-      db.logIn(auth.name, auth.password, (result) => {
-        if (result) {
-          next();
-        } else {
-          const err = new Error("Authentication failed");
-          err.data = "User not found";
-          next(err);
-        }
-      });
-    });
+    io.use(authentication);
     io.on('connection', socketSetup);
     io.of(/room\d+/).on('disconnect', (socket) => {
       const name = socket.handshake.auth.name;
@@ -45,6 +34,37 @@ const instantiate = (hostname = '127.0.0.1', port = 3000) => {
     return;
   }
   console.log('Server already running');
+}
+
+/**
+ * Authentication middleware function. Makes it so
+ * clients have to either log in or create new users.
+ * @param {Socket} socket the connecting socket
+ * @param {Function} next next call
+ */
+const authentication = (socket, next) => {
+  const auth = socket.handshake.auth;
+  if (auth.new) {
+    db.newUser(auth.name, auth.password, (success) => {
+      if (success) {
+        next();
+      } else {
+        const err = new Error("Create user failed");
+        err.data = "User already exists";
+        next(err);
+      }
+    });
+  } else {
+    db.logIn(auth.name, auth.password, (success) => {
+      if (success) {
+        next();
+      } else {
+        const err = new Error("Authentication failed");
+        err.data = "User not found";
+        next(err);
+      }
+    });
+  }
 }
 
 /**
