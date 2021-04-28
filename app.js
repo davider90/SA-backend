@@ -15,12 +15,11 @@ import db from "./db.js";
 import server from "./socketIO.js";
 
 db.instantiate();
-server.instantiate();
+server();
 
 // Testing of db below
 // const test = () => {
 //   db.instantiate();  // Should fail
-//   // db.setUp();  // Only run once!
 //   db.newUser("David", "test", () => {
 //     db.getPlayer("David", (result) => console.log(result));
 //     db.getTopTen((result) => {

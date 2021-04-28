@@ -132,7 +132,10 @@ const logIn = (name, password, callback) => {
 const newUser = (name, password, callback) => {
   if (!isInstantiated) return;
   getPlayer(name, (result) => {
-    if (result) callback(false);
+    if (result) {
+      callback(false);
+      return;
+    }
     const newPlayer = {
       player: name,
       score: 0,

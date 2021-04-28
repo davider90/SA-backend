@@ -31,6 +31,7 @@ const instantiate = (hostname = '127.0.0.1', port = 3000) => {
       const session = findSessionByPlayer(name);
       terminateGame(session.room, `Player "${name}" disconnected`);
     });
+    console.log('Server is now running!');
     return;
   }
   console.log('Server already running');
@@ -44,7 +45,7 @@ const instantiate = (hostname = '127.0.0.1', port = 3000) => {
  */
 const authentication = (socket, next) => {
   const auth = socket.handshake.auth;
-  if (auth.new) {
+  if (auth.new == "true") {
     db.newUser(auth.name, auth.password, (success) => {
       if (success) {
         next();
