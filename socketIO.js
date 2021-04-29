@@ -92,12 +92,7 @@ const socketSetup = (socket) => {
   socket.on('quitGame', async () => playerQuit(socket));
   socket.on('tick', (boardObject) => {
     gameTick(findSessionByPlayer(name).room, boardObject);
-  })
-  // POSSIBLE RECONNECTION HANDLING
-  // const inGame = gameSessions.find((element, index) => {
-  //   return element.player1 == '' || element.player2 == '';
-  // })
-  // inGame && socket.join(inGame.room);
+  });
 }
 
 /**
@@ -120,7 +115,7 @@ const gameTick = (room, boardObject) => {
  * @param {number} room the game's room number
  */
 const gameUpdate = (room) => {
-  io.to(`room${room}`).volatile.emit(game.getGame(room).board);
+  io.to(`room${room}`).volatile.emit('gameUpdate', game.getGame(room).board);
 }
 
 /**
