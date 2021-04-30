@@ -274,4 +274,4 @@ const doWithTimeout = (onSuccess, onTimeout, timeout) => {
   }
 }
 
-export default instantiate;
+export default { instantiate };

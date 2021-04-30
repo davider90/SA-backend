@@ -15,7 +15,7 @@ import db from "./db.js";
 import server from "./socketIO.js";
 
 db.instantiate();
-server();
+server.instantiate();
 
 // Testing of db below
 // const test = () => {
