@@ -24,21 +24,21 @@ services, this is clearly a client-server model.
 import db from "./db.js";
 import server from "./socketIO.js";
 
-//db.instantiate();
-//server.instantiate('35.228.7.69', 3000);
+db.instantiate();
+server.instantiate('35.228.7.69', 3000);
 
 // Testing of db below
-const test = () => {
-  db.instantiate();  // Should fail
-  db.newUser("David", "test", () => {
-    db.getPlayer("David", (result) => console.log(result));
-    db.getTopTen((result) => {
-      console.log(result);
-      db.logIn("David", "test", (result) => {
-        console.log(result);
-        db.dispose();
-      })
-    });
-  });
-}
-db.instantiate(test);
+// const test = () => {
+//   db.instantiate();  // Should fail
+//   db.newUser("David", "test", () => {
+//     db.getPlayer("David", (result) => console.log(result));
+//     db.getTopTen((result) => {
+//       console.log(result);
+//       db.logIn("David", "test", (result) => {
+//         console.log(result);
+//         db.dispose();
+//       })
+//     });
+//   });
+// }
+// db.instantiate(test);
