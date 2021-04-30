@@ -10,10 +10,12 @@ import { Server } from "socket.io";
 import db from "./db.js";
 import game from "./game.js";
 
+// "Private fields"
 let io;  // Socket.io server object
 let isInstantiated = false;
 let gameSessions = [];
 
+// "Public method"
 /**
  * Starts the Socket.io server and makes it listen at
  * http://{hostname}:{port}/
@@ -41,6 +43,7 @@ const instantiate = (hostname = '127.0.0.1', port = 3000) => {
   console.log('Server already running');
 }
 
+// "Private methods"
 /**
  * Authentication middleware function. Makes it so
  * clients have to either log in or create new users.
@@ -277,4 +280,5 @@ const doWithTimeout = (onSuccess, onTimeout, timeout) => {
   }
 }
 
+// Exporting of the "public method"
 export default { instantiate };

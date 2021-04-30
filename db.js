@@ -18,7 +18,7 @@ unless isInstatiated is true.
 import mongodb from "mongodb";
 const MongoClient = mongodb.MongoClient;
 
-// "Private" fields
+// "Private fields"
 const url = 'mongodb://localhost:27017/mydb';
 let isInstantiated = false;
 let mdb;  // Mongo database (general)
