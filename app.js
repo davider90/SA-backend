@@ -5,10 +5,20 @@ The backend makes use of JavaScript modules to split up
 functionality across multiple JS files. There are some applied
 "tricks" here that are related to the software architecture.
 
-TO WRITE ABOUT:
-Introduce concurrency 
-Backend as a Service
-Client–Server
+How specific patterns and tricks are used within each "class"
+is written about in the comments of their respective files.
+
+To introduce concurrency, JavaScript's async functions, promises
+and frequent use of callbacks has been used to parallelize tasks.
+Of course, this is not true multithreading, but rather a clever
+use of the event loop.
+
+As much of the logic behind online functionality as feasibly
+possible, has been confined to the backend's own scripts to
+better fit the BaaS model.
+
+Since each game client connects to one backend for online
+services, this is clearly a client-server model.
 */
 
 import db from "./db.js";
@@ -31,5 +41,4 @@ server.instantiate();
 //     });
 //   });
 // }
-
 // db.instantiate(test);
