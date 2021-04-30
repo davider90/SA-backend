@@ -1,9 +1,19 @@
 /*
 This file contains the backend's game logic.
+
+It uses the same "trick" as db.js and socketIO.js
+in the sense that it pretends to be a class, but it
+does not implement the singleton pattern as it is
+unnecessary here.
 */
 
+// "Private fields"
 let boards;
+// For defining the confines of the board
+let maxX = 10;
+let maxY = 10;
 
+// "Public methods"
 /**
  * Pushes a new game board to boards
  * @param {number} room the game's room number
@@ -11,7 +21,11 @@ let boards;
 const newGame = (room) => {
   boards.push({
     room: room,
-    board: [[]],
+    board: {
+      p1: [[]],
+      p2: [[]],
+      apple: []
+    },
     time: -1
   })
 }
@@ -38,8 +52,12 @@ const gameTick = (room, boardObject, callback) => {
     return;
   }
   serverBoard.board = boardObject.board;
+  if (isGameOver(serverBoard, callback)) return;
+  if (boardObject.apple) serverBoard.apple = [];
   serverBoard.time = boardObject.timestamp;
-  if (isGameOver(callback)) return;
+  if (serverBoard.apple == [] || serverBoard.time % 10 == 0) {
+    serverBoard.apple = newApple(serverBoard);
+  }
   callback(0);
 }
 
@@ -54,16 +72,29 @@ const endGame = (room, callback = () => {}) => {
   callback();
 }
 
+// "Private methods"
 /**
- * WORK IN PROGRESS!
  * Checks if any player has won.
  * @param {Function} callback callback function
  * @returns true if game is over, else false
  */
- const isGameOver = (callback) => {
-  // Check if a player has crashed.
-  // callback(1) means player 1 won.
-  // callback(2) means player 2 won.
+const isGameOver = (serverBoard, callback) => {
+  const p1 = serverBoard.board.p1;
+  const p2 = serverBoard.board.p2;
+  const p1HeadPos = p1[0];
+  const p2HeadPos = p2[0];
+  for (let index = 1; index < p1.length; index++) {
+    if (p2HeadPos == p1[index]) {
+      callback(1);
+      return true;
+    }
+  }
+  for (let index = 1; index < p2.length; index++) {
+    if (p1HeadPos == p2[index]) {
+      callback(2);
+      return true;
+    }
+  }
   return false;
 }
 
@@ -79,6 +110,70 @@ const findGameByRoom = (room) => {
   });
 }
 
+/**
+ * Adds a new apple at a random unoccupied square
+ * @param {Object} serverBoard 
+ */
+const newApple = (serverBoard) => {
+  while (serverBoard.apple == []) {
+    let X = shuffle(generateArray(maxX));
+    let Y = shuffle(generateArray(maxY));
+    for (let xIndex = 0; xIndex < maxX; xIndex++) {
+      for (let yIndex = 0; yIndex < maxY; yIndex++) {
+        let takenByP1 = serverBoard.p1.find((element, i) => {
+          return element == [X[xIndex], Y[yIndex]];
+        });
+        let takenByP2 = serverBoard.p2.find((element, i) => {
+          return element == [X[xIndex], Y[yIndex]];
+        });
+        if (!takenByP1 && !takenByP2) {
+          serverBoard.apple = [X[xIndex], Y[yIndex]];
+          return;
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Generates an array of the numbers 1 to n
+ * @param {number} n 
+ * @returns the generated array
+ */
+const generateArray = (n) => {
+  let array = new Array(n+1);
+  for (let index = 0; index < n+1; index++) {
+    array[index] = index + 1;
+  }
+  return array;
+}
+
+/**
+ * Shuffles an array by using Fisher-Yates/Knuth shuffle.
+ * Source: https://stackoverflow.com/questions/2450954/how-to-randomize-shuffle-a-javascript-array
+ * @param {Array} array 
+ * @returns the shuffled array
+ */
+const shuffle = (array) => {
+  var currentIndex = array.length, temporaryValue, randomIndex;
+
+  // While there remain elements to shuffle...
+  while (0 !== currentIndex) {
+
+    // Pick a remaining element...
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex -= 1;
+
+    // And swap it with the current element.
+    temporaryValue = array[currentIndex];
+    array[currentIndex] = array[randomIndex];
+    array[randomIndex] = temporaryValue;
+  }
+
+  return array;
+}
+
+// Exporting of "public methods"
 export default {
   newGame,
   getGame,
