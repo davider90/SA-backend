@@ -1,5 +1,9 @@
 /*
 This file contains the Socket.io logic of the backend.
+
+It utilises the same singleton pattern and state pattern
+as the ones db.js uses. A more in-depth explanation can be
+found in that file.
 */
 
 import { Server } from "socket.io";
@@ -166,7 +170,6 @@ const requestGame = async (from, to) => {
   return new Promise((resolve, reject) => {
     const timeout = () => reject(null);
     to.emit('gameRequest', from, (response) => {
-      // Not sure if this works yet
       doWithTimeout(resolve, timeout, 10000)([response != null]);
     });
   });
@@ -235,7 +238,7 @@ const findSocketByName = async (name) => {
  * @returns index of the found session or -1
  */
 const findSessionByNumber = (number) => {
-  return gameSessions.findIndex((element, index) => {
+  return gameSessions.findIndex((element, i) => {
     return element.room == number;
   });
 }
