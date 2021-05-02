@@ -1,3 +1,5 @@
+// This file is just a script to test the networking.
+
 import { io } from "socket.io-client";
 
 const socket = io('http://35.228.7.69:3000/', {
