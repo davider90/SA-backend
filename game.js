@@ -47,16 +47,17 @@ const getGame = (room) => {
  */
 const gameTick = (room, boardObject, callback) => {
   const serverBoard = boards[findGameByRoom(room)];
-  if (boardObject.timestamp < serverBoard.time) {
+  if (boardObject.time < serverBoard.time) {
     callback(-1);
     return;
   }
-  serverBoard.board = boardObject.board;
+  for (const key of Object.keys(boardObject.board)) {
+    serverBoard.board[key] = boardObject.board[key];
+  }
   if (isGameOver(serverBoard, callback)) return;
-  if (boardObject.apple) serverBoard.apple = [];
   serverBoard.time = boardObject.timestamp;
-  if (serverBoard.apple == [] || serverBoard.time % 10 == 0) {
-    serverBoard.apple = newApple(serverBoard);
+  if (serverBoard.board.apple == [] || serverBoard.time % 10 == 0) {
+    serverBoard.board.apple = newApple(serverBoard);
   }
   callback(0);
 }
