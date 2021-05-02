@@ -156,9 +156,9 @@ const newGame = async (socket, callback) => {
     socket.join(`room${i}`);
     opponent.join(`room${i}`);
     game.newGame(`room${i}`);
-    callback(i, p2Name);
+    callback({ room: i, opponent: p2Name });
   } else {
-    callback(null, null);
+    callback({ room: null, opponent: null });
   }
 }
 
