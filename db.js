@@ -65,7 +65,7 @@ const dispose = () => {
 const getTopTen = (callback) => {
   if (!isInstantiated) return;
   const sort = { score: -1 };
-  const filter = { player: 1, score: 1 };
+  const filter = { projection: { player: 1, score: 1 } };
   psdb.collection('players').find({}, filter)
                             .sort(sort)
                             .limit(10)
