@@ -28,9 +28,9 @@ failure). This makes the server more reliable.
 import db from "./db.js";
 import server from "./socketIO.js";
 
-db.instantiate();
-//server.instantiate('35.228.7.69', 3000);
-server.instantiate();
+// db.instantiate();
+// server.instantiate('35.228.7.69', 3000);
+// server.instantiate();
 
 // Testing of db below
 // const test = () => {
@@ -47,3 +47,25 @@ server.instantiate();
 //   });
 // }
 // db.instantiate(test);
+
+const setup = () => {
+  db.newUser("Alf Inge", "AI", () => {
+    db.newUser("Jonatan", "J", () => {
+      db.newUser("Asgeir", "A", () => {
+        db.newUser("Birger", "B", () => {
+          db.updatePlayer("Alf Inge", 2, () => {
+            db.updatePlayer("Jonatan", 4, () => {
+              db.updatePlayer("Asgeir", 2, () => {
+                db.updatePlayer("Birger", 10, () => {
+                  db.updatePlayer("David", 7);
+                });
+              });
+            });
+          });
+        });
+      });
+    });
+  });
+}
+
+db.instantiate(setup);
