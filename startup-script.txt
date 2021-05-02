@@ -1,0 +1,7 @@
+#!/bin/bash
+sudo systemctl start mongod
+cd ~
+cd SA-backend/
+git pull
+node app.js & disown
+EOF

@@ -19,13 +19,18 @@ better fit the BaaS model.
 
 Since each game client connects to one backend for online
 services, this is clearly a client-server model.
+
+The file startup-script.txt contains a startup script that the
+Linux VM will run if it is rebooted (e.g. in case of a power
+failure). This makes the server more reliable.
 */
 
 import db from "./db.js";
 import server from "./socketIO.js";
 
 db.instantiate();
-server.instantiate('35.228.7.69', 3000);
+//server.instantiate('35.228.7.69', 3000);
+server.instantiate();
 
 // Testing of db below
 // const test = () => {
