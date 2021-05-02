@@ -171,9 +171,9 @@ const newGame = async (socket, callback) => {
  */
 const requestGame = async (from, to) => {
   return new Promise((resolve, reject) => {
-    const timeout = () => reject(null);
+    const timeout = () => reject(false);
     to.emit('gameRequest', from, (response) => {
-      doWithTimeout(resolve, timeout, 10000)([response != null]);
+      doWithTimeout(resolve, timeout, 10000)(response);
     });
   });
 }
