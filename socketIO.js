@@ -32,11 +32,6 @@ const instantiate = (hostname = '127.0.0.1', port = 3000) => {
     });
     io.use(authentication);
     io.on('connection', socketSetup);
-    io.of(/room\d+/).on('disconnect', (socket) => {
-      const name = socket.handshake.auth.name;
-      const session = findSessionByPlayer(name);
-      terminateGame(session.room, `Player "${name}" disconnected`);
-    });
     console.log('Server is now running!');
     return;
   }
@@ -82,8 +77,11 @@ const authentication = (socket, next) => {
 const socketSetup = (socket) => {
   const name = socket.handshake.auth.name;
   console.log(`New connection: ${socket.id}`);
-  socket.on('disconnected', (reason) => {
+  socket.on('disconnect', (reason) => {
     console.log(`Client "${socket.id}" disconnected: ${reason}`);
+    const name = socket.handshake.auth.name;
+    const session = findSessionByPlayer(name);
+    if (session) terminateGame(session.room, `Player "${name}" disconnected`);
   });
   socket.join('mainRoom');
   socket.on('getTopTen', db.getTopTen);
@@ -97,9 +95,6 @@ const socketSetup = (socket) => {
     newGame(socket, callback);
   });
   socket.on('quitGame', async () => playerQuit(socket));
-  socket.on('tick', (boardObject) => {
-    gameTick(findSessionByPlayer(name).room, boardObject);
-  });
 }
 
 /**
@@ -122,7 +117,9 @@ const gameTick = (room, boardObject) => {
  * @param {number} room the game's room number
  */
 const gameUpdate = (room) => {
-  io.to(`room${room}`).volatile.emit('gameUpdate', game.getGame(room).board);
+  const gameObject = game.getGame(room);
+  if (!gameObject) return;
+  io.to(`room${room}`).volatile.emit('gameUpdate', gameObject.board);
 }
 
 /**
@@ -151,11 +148,17 @@ const newGame = async (socket, callback) => {
       room: i,
       player1: name,
       player2: p2Name,
-      updater: setInterval(gameUpdate(i), 100)
+      updater: setInterval(gameUpdate, 100, i)
     });
     socket.join(`room${i}`);
     opponent.join(`room${i}`);
-    game.newGame(`room${i}`);
+    game.newGame(i);
+    socket.on('tick', (boardObject) => {
+      gameTick(i, boardObject);
+    });
+    opponent.on('tick', (boardObject) => {
+      gameTick(i, boardObject);
+    });
     callback({ room: i, opponent: p2Name });
   } else {
     callback({ room: null, opponent: null });
@@ -200,10 +203,12 @@ const terminateGame = async (room, reason) => {
   clearInterval(gameSessions[sessionIndex].updater);
   const socket1 = await findSocketByName(gameSessions[sessionIndex].player1);
   const socket2 = await findSocketByName(gameSessions[sessionIndex].player2);
-  socket1.emit('endGame', reason);
-  socket1.leave(`room${room}`);
-  socket2.emit('endGame', reason);
-  socket2.leave(`room${room}`);
+  for (const sock of [socket1, socket2]) {
+    if (!sock) continue;
+    sock.removeAllListeners("tick");
+    sock.emit('endGame', reason);
+    sock.leave(`room${room}`);
+  }
   game.endGame(`room${room}`);
   gameSessions.splice(sessionIndex, 1);
 };
