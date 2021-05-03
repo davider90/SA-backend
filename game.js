@@ -8,7 +8,7 @@ unnecessary here.
 */
 
 // "Private fields"
-let boards;
+let boards = [];
 // For defining the confines of the board
 let maxX = 10;
 let maxY = 10;
@@ -22,8 +22,8 @@ const newGame = (room) => {
   boards.push({
     room: room,
     board: {
-      p1: [[]],
-      p2: [[]],
+      p1: [[0, 0]],
+      p2: [[5, 5]],
       apple: []
     },
     time: -1
@@ -36,7 +36,9 @@ const newGame = (room) => {
  * @param {number} room the game's room number
  */
 const getGame = (room) => {
-  return boards[findGameByRoom(room)];
+  const gameIndex = findGameByRoom(room);
+  if (gameIndex < 0) return null;
+  return boards[gameIndex];
 }
 
 /**
