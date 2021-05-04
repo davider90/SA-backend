@@ -16,3 +16,10 @@ To install the backend, follow the steps below.
 - Finally, run `node app.js`.
 
 The backend should now be installed and running. You can configure which IP and port the backend should listen to, in the app.js file.
+
+# Structure
+File-wise, the structure of the backend is fairly simple since there are no folders to get lost in. Moreover, the entire functionality of the backend is confined to the four files: app.js, db.js, socketIO.js and game.js.
+
+To give an overview of the logic, a class diagram is displayed below.
+
+![Class diagram of the backend](./classDiagram.jpg)
