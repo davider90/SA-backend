@@ -1,4 +1,4 @@
-# SA-backend
+# SA Backend
 This is the backend of the Party Snake Android game.
 
 ## General Information
