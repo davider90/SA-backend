@@ -1,6 +1,8 @@
 # SA-backend
+This is the backend of the Party Snake Android game.
+
 ## General Information
-This is the backend of the Party Snake Android game. It is created in the context of the group project of TDT4240 Software Architecture.
+It is created in the context of the group project of TDT4240 Software Architecture.
 
 A Google Cloud VM is used to run the backend and make it available at http://35.228.7.69:3000/. Google Cloud ensures that in the event of a VM failure, the VM is rebooted or booted from a new but equivalent location. The file startup-script.txt contains a startup script that the VM will run if it is rebooted (e.g. because of a power failure). This is to makes the server more reliable.
 
