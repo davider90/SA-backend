@@ -4,7 +4,9 @@ This file contains the backend's game logic.
 It uses the same "trick" as db.js and socketIO.js
 in the sense that it pretends to be a class, but it
 does not implement the singleton pattern as it is
-unnecessary here.
+unnecessary here: There is no functionality nor any
+fields that is dangerous to dulicate or have in several
+parallel threads.
 */
 
 // "Private fields"
